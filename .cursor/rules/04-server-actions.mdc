@@ -1,0 +1,148 @@
+---
+description: Server Actions conventions for Next.js App Router mutations
+globs: src/actions/**/*.ts
+alwaysApply: false
+---
+
+<!--
+  Sincronizado con: .claude/skills/server-action-patterns/SKILL.md
+  Fuente autoritativa: skill. Si cambias patrones, actualizar ambos en paralelo.
+-->
+
+# Server Actions — Convenciones
+
+Hay dos patrones según si la acción se conecta a un formulario con `useActionState` o se llama programáticamente.
+
+---
+
+## Patrón A — Acción de formulario con `useActionState`
+
+Usar cuando el componente muestra errores de validación inline sin recargar la página. El estado persiste entre envíos.
+
+### Acción (servidor)
+```ts
+'use server'
+
+import { z } from 'zod'
+import { redirect } from 'next/navigation'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { safeRedirect } from '@/lib/utils'
+
+const Schema = z.object({
+  email: z.string().email({ message: 'Email inválido.' }),
+  password: z.string().min(8, { message: 'Mínimo 8 caracteres.' }),
+})
+
+// El tipo de estado debe exportarse para que el Client Component lo importe
+export type FormState =
+  | { error?: string; fieldErrors?: { email?: string[]; password?: string[] } }
+  | undefined
+
+// Firma obligatoria: (prevState, formData) — el orden importa
+export async function myFormAction(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const parsed = Schema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors }
+  }
+
+  const supabase = await createSupabaseServerClient()
+  const { error } = await supabase.auth.signInWithPassword(parsed.data)
+
+  if (error) return { error: 'Credenciales incorrectas.' } // nunca exponer error.message
+
+  redirect(safeRedirect(formData.get('redirectTo') as string | null))
+}
+```
+
+### Componente (cliente)
+```tsx
+'use client'
+
+import { useActionState } from 'react'
+import { myFormAction, type FormState } from '@/actions/my-actions'
+
+export function MyForm() {
+  const [state, action, pending] = useActionState<FormState, FormData>(myFormAction, undefined)
+
+  return (
+    <form action={action}>
+      {/* Sin type="email" ni required — validación delegada a Zod para mensajes en español */}
+      <input name="email" type="text" autoComplete="email" />
+      {state?.fieldErrors?.email && <p>{state.fieldErrors.email[0]}</p>}
+
+      <input name="password" type="password" />
+      {state?.fieldErrors?.password && <p>{state.fieldErrors.password[0]}</p>}
+
+      {state?.error && <p>{state.error}</p>}
+
+      <button type="submit" disabled={pending}>
+        {pending ? 'Enviando...' : 'Enviar'}
+      </button>
+    </form>
+  )
+}
+```
+
+**Cuándo usar:** formularios de auth, onboarding, cualquier form que muestre errores de campo sin navegar.
+
+---
+
+## Patrón B — Acción programática con `{ data, error }`
+
+Usar cuando la acción se llama desde un handler de evento o desde código (no directamente desde `<form action>`), y el componente maneja el resultado con lógica propia.
+
+```ts
+'use server'
+
+import { z } from 'zod'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { revalidatePath } from 'next/cache'
+
+const InputSchema = z.object({
+  name: z.string().min(1),
+})
+
+export async function createItem(
+  input: z.infer<typeof InputSchema>
+): Promise<{ data: Item | null; error: string | null }> {
+  const parsed = InputSchema.safeParse(input)
+  if (!parsed.success) {
+    return { data: null, error: parsed.error.errors[0].message }
+  }
+
+  const supabase = await createSupabaseServerClient()
+
+  // getUser() valida el JWT contra el servidor — nunca usar getSession()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { data: null, error: 'Unauthorized' }
+
+  const { data, error } = await supabase.from('items').insert(parsed.data).select().single()
+
+  if (error) return { data: null, error: 'Error al guardar' }
+
+  revalidatePath('/items')
+  return { data, error: null }
+}
+```
+
+**Cuándo usar:** mutaciones de negocio (crear, actualizar, eliminar registros), llamadas desde `onClick` o lógica condicional.
+
+---
+
+## Reglas comunes
+- Siempre `'use server'` al inicio del archivo
+- Validar con Zod antes de cualquier operación
+- Nunca exponer `error.message` interno al cliente — usar mensajes genéricos
+- Un archivo por dominio (`auth.ts`, `items.ts`, `organizations.ts`)
+- Después de mutaciones que afecten la UI: `revalidatePath()` o `revalidateTag()`
+
+## Cuándo usar Action vs API Route
+- **Server Action:** mutaciones desde formularios o componentes React
+- **API Route:** endpoints para servicios externos, webhooks, o fetches con headers custom

@@ -1,0 +1,33 @@
+---
+description: TypeScript strict rules for all .ts and .tsx files
+globs: **/*.ts,**/*.tsx
+alwaysApply: false
+---
+
+# TypeScript — Reglas estrictas
+
+## Tipos
+- `interface` para props de componentes y contratos públicos
+- `type` para uniones, intersecciones y aliases de utilidad
+- `z.infer<typeof Schema>` para tipos derivados de validaciones Zod
+- Tipos de Supabase: usar siempre la interfaz `Database` generada — nunca tipos manuales para filas de DB
+
+## Prohibiciones
+- No `any` — si el tipo es desconocido: `unknown` + narrowing explícito
+- No casting con `as` salvo que sea inevitable; si se usa, comentario justificando
+- No `!` (non-null assertion) en código de producción salvo variables de entorno ya validadas
+
+## Funciones públicas
+```ts
+// Siempre tipos explícitos en parámetros y retorno
+export async function createReservation(
+  input: CreateReservationInput
+): Promise<{ data: Reservation | null; error: string | null }> {}
+```
+
+## Variables locales
+- Inferencia de tipos para variables locales obvias — no anotar lo que TS ya sabe
+```ts
+const count = 0           // ok — inferido como number
+const count: number = 0   // redundante
+```

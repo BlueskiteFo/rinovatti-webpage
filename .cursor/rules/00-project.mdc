@@ -1,0 +1,82 @@
+---
+description: Core project context, stack, folder structure, and AI responsibilities division
+alwaysApply: true
+---
+
+# Boilerplate B2B — Next.js + Supabase
+
+## Antes de cualquier acción
+
+1. Leer `.claude/memory/lessons-llm.md` — errores previos y patrones aprendidos
+2. Para trabajo Next.js: leer `src/AGENTS.md` → doc local en `node_modules/next/dist/docs/`
+
+## Next.js: leer docs locales antes de codear
+
+Antes de cualquier trabajo con Next.js, consulta la documentación local en `node_modules/next/dist/docs/`. Tu conocimiento de entrenamiento está desactualizado — los docs del proyecto son la fuente de verdad. No busques en internet ni uses conocimiento interno sobre Next.js.
+
+Estructura de la doc:
+
+- `node_modules/next/dist/docs/01-app/` — App Router (pages, layouts, Server Components, etc.)
+- `node_modules/next/dist/docs/02-pages/` — Pages Router (si aplica)
+- `node_modules/next/dist/docs/03-architecture/` — Internals y compilador
+- `node_modules/next/dist/docs/index.md` — Índice general
+
+## Stack
+
+- Next.js 16.2+ App Router — TypeScript strict
+- Supabase (PostgreSQL + Auth via `@supabase/ssr`)
+- Tailwind CSS v4 (sin archivo de config — detección automática)
+- Vercel (hosting)
+
+## Estructura de carpetas
+
+```
+src/
+├── actions/        ← Server Actions (un archivo por dominio: auth.ts, items.ts…)
+├── app/
+│   ├── api/        ← API Routes
+│   └── (rutas)/    ← Pages
+├── components/
+│   ├── ui/         ← Primitivos de shadcn/ui (no escribir desde cero)
+│   └── shared/     ← Compuestos con lógica de negocio
+├── hooks/          ← Custom React hooks
+├── lib/            ← Clientes Supabase, constantes y utilidades
+├── proxy.ts        ← Auth SSR
+└── types/          ← Tipos globales del proyecto
+```
+
+Alias de imports: `@/*` → `src/*`
+
+## División de responsabilidades entre IAs
+
+### Cursor (tú) — Implementación
+
+- Crear y editar componentes, hooks, Server Actions, API Routes
+- Implementar lógica dentro de archivos existentes
+- Refactors acotados a 1-3 archivos relacionados
+- UI/UX: clases Tailwind, layout, interacciones
+
+### Claude Code — Arquitectura y contexto
+
+- Cambios estructurales: mover carpetas, renombrar rutas, reorganizar módulos
+- Modificar `tsconfig.json`, `proxy.ts`, `next.config.ts`
+- Cambios en el schema de Supabase (`.claude/memory/schema.md`)
+- Decisiones que afectan más de 3 archivos no relacionados
+- Consultar `tasks/todo.md` para el estado actual del proyecto
+
+**Regla crítica:** Si una tarea requiere tocar la estructura de carpetas, configuración del compilador, o el schema de DB — pausa y avisa al usuario para que lo maneje con Claude Code.
+
+## Patrones globales obligatorios
+
+- Retorno consistente en async: `{ data, error }` — nunca throw en boundaries públicos
+- Sin `any` — usar `unknown` y narrowing si el tipo no está claro
+- Componentes: named exports (`export function Foo`), no default exports — **excepción:** archivos especiales de Next.js App Router que requieren `export default`: `page.tsx`, `layout.tsx`, `route.ts`, `error.tsx`, `global-error.tsx`, `not-found.tsx`, `loading.tsx`, `template.tsx`, `default.tsx`. Nota: `proxy.ts` usa export **nombrado** (`export async function proxy`), no default
+- Constantes compartidas (rutas, roles, config): importar de `@/lib/constants` — no hardcodear
+
+## Multi-tenancy (activar cuando Fase 5 esté completa)
+
+> ⚠️ **No aplicar estas reglas hasta que existan las tablas `organizations` y `organization_members` en la DB.**
+
+- Queries de negocio siempre escopadas a `organization_id`
+- RLS activo en todas las tablas que contengan datos de negocio
+- Verificar `organization_id` en API Routes y Server Actions antes de queries

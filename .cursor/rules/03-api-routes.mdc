@@ -1,0 +1,46 @@
+---
+description: API Route conventions for Next.js App Router route handlers
+globs: src/app/api/**/*.ts
+alwaysApply: false
+---
+
+# API Routes — Convenciones
+
+## Estructura estándar
+```ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Validar input (query params, body)
+    // 2. Verificar auth si aplica
+    // 3. Ejecutar lógica
+    // 4. Retornar respuesta tipada
+
+    return NextResponse.json({ data: result, error: null }, { status: 200 })
+  } catch {
+    return NextResponse.json(
+      { data: null, error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+## Reglas de validación
+- Validar input en el boundary con Zod — sin excepción
+- Nunca confiar en el body sin validar
+- Retornar `400` con mensaje descriptivo para input inválido
+
+## Respuestas
+- Siempre `{ data, error }` — consistente con Server Actions
+- Códigos HTTP semánticos: `200` OK, `201` Created, `400` Bad Request, `401` Unauthorized, `404` Not Found, `500` Internal Error
+- **Nunca exponer mensajes de error internos** al cliente en producción
+
+## Auth y Supabase
+- Usar `createSupabaseServerClient()` de `@/lib/supabase-server` (wrapper ya configurado con cookies)
+- Verificar sesión al inicio de rutas protegidas — retornar `401` si no hay sesión
+- Queries siempre escopadas a `organization_id` o `user_id` para multi-tenancy
+
+## Advertencia RLS
+Si una query toca tablas de Supabase sin filtro de `organization_id`/`user_id`, avisar al usuario antes de continuar — puede ser un bug de seguridad.

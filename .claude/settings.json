@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Edit(src/**)",
+      "Edit(tasks/**)",
+      "Edit(.claude/**)",
+      "Edit(.cursor/**)",
+      "Edit(*.md)",
+      "Edit(*.json)",
+      "Edit(*.mjs)",
+      "Edit(*.ts)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn *)",
+      "Bash(npx supabase *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(find *)"
+    ],
+    "deny": [
+      "Edit(.env)",
+      "Edit(.env.local)",
+      "Edit(.env.production)",
+      "Edit(node_modules/**)",
+      "Edit(.next/**)",
+      "Edit(package-lock.json)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-edit-check.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-format.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

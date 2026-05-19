@@ -1,0 +1,90 @@
+---
+description: Component patterns for React Server and Client Components
+globs: src/components/**/*.tsx,src/app/**/*.tsx
+alwaysApply: false
+---
+
+# Componentes — Convenciones
+
+## Server vs Client
+- **Server Component por defecto** — no añadir `"use client"` a menos que sea necesario
+- `"use client"` solo cuando el componente usa: estado (`useState`), efectos (`useEffect`), eventos del browser, o hooks de terceros que lo requieran
+- Si un Server Component necesita interactividad, extraer solo la parte interactiva a un Client Component hijo
+
+## Estructura de un componente
+```tsx
+// 1. Imports
+// 2. Interface de props (siempre interface, no type)
+// 3. Named export de la función
+// 4. Lógica / data fetching
+// 5. Return JSX
+
+interface CardProps {
+  title: string
+  description?: string
+}
+
+export function Card({ title, description }: CardProps) {
+  return (
+    <div className="rounded-lg border border-neutral-200 p-4">
+      <h3 className="font-semibold text-neutral-900">{title}</h3>
+      {description && <p className="text-sm text-neutral-500">{description}</p>}
+    </div>
+  )
+}
+```
+
+## Tamaño y extracción
+- Si un componente supera ~100 líneas: extraer lógica a un hook en `src/hooks/`
+- Si hay sub-secciones de UI repetidas: extraer a `src/components/ui/` (primitivo) o `src/components/shared/` (con lógica de negocio)
+
+## Auth en Server Components
+
+- Usar siempre `getUser()` de `createSupabaseServerClient()` — valida el JWT contra el servidor de Supabase y es la recomendación oficial para cualquier código del servidor
+- Supabase cachea la respuesta de `getUser()` dentro del mismo request, así que llamarlo en proxy + page no duplica el round-trip
+- **Nunca** usar `getSession()` en Server Components — lee la cookie sin validar y queda vulnerable si el matcher del proxy cambia
+
+```tsx
+// Correcto — validado contra el servidor de Supabase
+const supabase = await createSupabaseServerClient()
+const { data: { user } } = await supabase.auth.getUser()
+```
+
+## Primitivos UI — shadcn/ui (preset Luma)
+
+- `src/components/ui/` contiene los componentes de shadcn — **no escribir primitivos desde cero**
+- shadcn copia el código al repo: los archivos son tuyos, editables, sin dependencia externa que se rompa
+- Para agregar un componente nuevo: `npx shadcn@latest add <componente>`
+- Para extender un componente existente: editar directamente el archivo en `src/components/ui/`
+- `src/components/shared/` es para compuestos con lógica de negocio que usan primitivos de `ui/`
+- Para toasts/notificaciones: usar `sonner` (ya instalado) — importar `Toaster` en el `layout.tsx` raíz
+
+### Patrón de componente (Luma)
+
+El preset Luma **no usa `forwardRef`**. El patrón actual es función + `data-slot`:
+
+```tsx
+import { Slot } from "radix-ui" // paquete unificado, no @radix-ui/*
+import { cn } from "@/lib/utils"
+
+function Button({
+  className,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot.Root : "button"
+  return <Comp data-slot="button" className={cn("...", className)} {...props} />
+}
+```
+
+- Importar primitivos de Radix desde el paquete unificado `radix-ui` (`import { Dialog, Slot } from "radix-ui"`), no de `@radix-ui/react-*`
+- Exponer `asChild` vía `Slot.Root` cuando el componente deba poder delegar el elemento raíz
+- Usar `data-slot="<nombre>"` en cada subparte para que variantes/estilos externos puedan targetearlas
+- Composición de clases siempre vía `cn()` desde `@/lib/utils`
+- Si un primitivo shadcn no calza: extenderlo en un componente de `src/components/shared/`, nunca reescribir el primitivo
+
+## Tailwind v4
+- Solo clases de Tailwind — sin CSS inline salvo transformaciones dinámicas (`style={{ transform: ... }}`)
+- Mobile-first: `sm:` `md:` `lg:` para breakpoints
+- Estética B2B: limpio, alto contraste, profesional — evitar decoraciones innecesarias
+- Iconos: `lucide-react` únicamente (instalado automáticamente por shadcn)
