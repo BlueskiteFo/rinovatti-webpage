@@ -168,3 +168,97 @@ Al terminar todos los pasos, limpiar `.claude/` y `tasks/todo.md` para tener la 
 
 Ver `tasks/modules.md` — catálogo de integraciones por proyecto.
 Activar los que apliquen al inicio de cada proyecto nuevo.
+
+---
+
+---
+
+# MVP Rinnovati — Visualizador IA
+
+> Contexto: La Opción 2 (canvas overlay) no convence porque las imágenes de productos tienen fondo,
+> el cambio de color no se refleja visualmente, y no hay sombras ni perspectiva.
+> Se activa la Opción 1 usando FLUX Kontext en fal.ai.
+
+## Decisiones técnicas tomadas
+
+- **Motor:** `fal-ai/flux-kontext/max` — acepta foto de sala (usuario) + foto del mueble (catálogo) como inputs simultáneos
+- **Preservación de sala:** ~80-85% (diseñado para edición de imagen, no generación desde cero)
+- **Fidelidad del mueble:** ~70-80% (guiado por la foto real del catálogo vía referencia visual)
+- **Migración futura:** ComfyUI en fal.ai (FLUX + IP-Adapter + ControlNet) — solo cambia `AI_ENGINE=comfyui` en `.env` y la implementación del servidor; el cliente no cambia
+- **Fotos de referencia:** actualmente 1 foto por producto (`imageUrl`). El campo `referenceImageUrls?: string[]` queda listo para que el cliente provea 2-3 ángulos adicionales en Fase Producción
+
+## Flujo de la integración
+
+```
+VisualizerAI.tsx (Client)
+  → POST /api/visualizer
+      { roomImageBase64, productSlug, colorName, productImageUrl, ... }
+  ← { imageUrl } / { error }
+
+/api/visualizer/route.ts (Server)
+  → lee AI_ENGINE de process.env (default: "flux-kontext")
+  → llama a src/lib/visualizer/server/flux-kontext.ts
+      fal-ai/flux-kontext/max
+        image[0]: roomPhotoBase64   ← foto del usuario
+        image[1]: product.imageUrl  ← URL pública del catálogo
+        prompt: "Place the {color} {name} {material} shown in ref image into this room..."
+
+src/lib/visualizer/server/comfyui.ts  ← stub documentado para Fase Producción
+```
+
+## Preparación previa (HACER ESTO ANTES DEL CÓDIGO)
+
+- [ ] Crear cuenta en **fal.ai** (Sign Up con Google o GitHub)
+- [ ] Dashboard → API Keys → New Key → copiar el valor
+- [ ] Crear `.env.local` en la raíz del proyecto con: `FAL_KEY=fal_xxxxxxxxx` y `AI_ENGINE=flux-kontext`
+- [ ] Ejecutar `npm install @fal-ai/client`
+
+## Implementación — 10 archivos
+
+### Archivos existentes a modificar
+
+- [ ] `src/components/shared/PhotoUploader.tsx` — agregar `sizes="(max-width: 640px) 50vw, 200px"` en las 2 imágenes `<Image fill>` (fix warning de consola)
+- [ ] `src/lib/constants/rinnovati.ts` — agregar campo opcional `referenceImageUrls?: string[]` al tipo `Product` (sin cambiar los productos existentes — campo opcional)
+- [ ] `src/lib/visualizer/config.ts` — cambiar `mode: "canvas"` → `mode: "ai"`, agregar `aiOptions: { apiRoute: "/api/visualizer", provider: "fal" }`
+- [ ] `src/lib/visualizer/engines/ai.ts` — implementar `generateWithAI()` que hace `fetch("/api/visualizer", POST)` con los parámetros del producto y retorna `{ data, error }`
+- [ ] `src/app/visualizador/[slug]/page.tsx` — cambiar import y uso: `VisualizerCanvas` → `VisualizerAI`
+- [ ] `.env.example` — agregar `FAL_KEY=` y `AI_ENGINE=flux-kontext` (sin valores reales)
+
+### Archivos nuevos a crear
+
+- [ ] `src/lib/visualizer/server/flux-kontext.ts` — implementación FLUX Kontext. Llama a `fal.subscribe("fal-ai/flux-kontext/max", { input: { prompt, image_url: roomPhoto, reference_image_url: productImageUrl } })`. **Nota:** verificar el nombre exacto del parámetro `reference_image_url` en fal.ai/models al implementar.
+- [ ] `src/lib/visualizer/server/comfyui.ts` — stub documentado con `throw new Error("ComfyUI engine: pendiente implementación Fase Producción")` y comentarios de cómo activarlo
+- [ ] `src/app/api/visualizer/route.ts` — POST handler. Lee `process.env.AI_ENGINE`, despacha a `generateWithFluxKontext()` o `generateWithComfyUI()`. Retorna `{ imageUrl }` o `{ error }`. Wrappear en try/catch.
+- [ ] `src/components/shared/VisualizerAI.tsx` — componente Client con 4 estados: `idle` (selector color + input ancho + botón "✦ Generar"), `generating` (spinner + "~30 segundos"), `done` (imagen resultado + botones [Cambiar foto] [Regenerar] [✓ Agendar cita]), `error` (mensaje + [Reintentar]). Props idénticas a `VisualizerCanvas`: `{ product, roomPhotoUrl, onRetry, onCancel }`. Incluir disclaimer "Imagen generada por IA — resultado orientativo" bajo la imagen.
+
+## UX del estado `done`
+
+```
+┌──────────────────────────────────────────────────────┐
+│         [Imagen generada — full width]               │
+│  Tag: "Camila · Beige Lino · Generado por IA"        │
+└──────────────────────────────────────────────────────┘
+[Cambiar foto]    [Regenerar]    [✓ Agendar cita]
+  Imagen generada por IA — resultado orientativo
+```
+
+## Verificación end-to-end
+
+- [ ] `npm run dev` — sin errores TypeScript ni de compilación
+- [ ] `/catalogo/camila` → "Probar visualizador IA" → PhotoUploader sin warnings de `sizes`
+- [ ] Click "Generar visualización" → spinner → imagen en ~25-40s
+- [ ] La imagen muestra la sala del usuario con el mueble integrado
+- [ ] "Regenerar" produce una variación diferente con la misma sala y mueble
+- [ ] "Agendar cita" abre modal WhatsApp con nombre del producto y color correctos
+- [ ] Probar en mobile — layout responsive sin desbordamientos
+
+## Migración a ComfyUI (Fase Producción — no tocar ahora)
+
+Cuando el cliente valide el MVP y quiera mayor fidelidad:
+
+1. Diseñar workflow ComfyUI local: FLUX + IP-Adapter + ControlNet Depth
+2. Agregar 2-3 fotos por ángulo en `referenceImageUrls[]` de cada producto
+3. Exportar workflow como JSON y subir a fal.ai
+4. Implementar `src/lib/visualizer/server/comfyui.ts` con el workflow ID
+5. Cambiar `AI_ENGINE=comfyui` en `.env` del servidor
+6. **El cliente (VisualizerAI.tsx) no necesita cambios**
