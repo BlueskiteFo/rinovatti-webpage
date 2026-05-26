@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { ViewTransition } from 'react'
 import './globals.css'
 import { cn } from '@/lib/utils'
 import { Toaster } from '@/components/ui/sonner'
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn(cormorant.variable, dmSans.variable)} suppressHydrationWarning>
       <body className="bg-rv-warm-white text-rv-dark font-sans antialiased">
-        {children}
+        <ViewTransition>{children}</ViewTransition>
         <Toaster />
       </body>
     </html>

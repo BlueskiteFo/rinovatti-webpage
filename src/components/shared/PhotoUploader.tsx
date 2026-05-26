@@ -79,6 +79,7 @@ export function PhotoUploader({ onPhotoSelected }: Props) {
                 src={PHOTO_INSTRUCTIONS.goodAngleImageUrl}
                 alt="Ángulo correcto"
                 fill
+                sizes="(max-width: 640px) 50vw, 200px"
                 className="object-cover"
               />
             </div>
@@ -90,6 +91,7 @@ export function PhotoUploader({ onPhotoSelected }: Props) {
                 src={PHOTO_INSTRUCTIONS.badAngleImageUrl}
                 alt="Ángulo a evitar"
                 fill
+                sizes="(max-width: 640px) 50vw, 200px"
                 className="object-cover opacity-60"
               />
             </div>

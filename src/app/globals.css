@@ -269,3 +269,47 @@
     @apply font-sans;
   }
 }
+
+/* ─── Animaciones Rinnovati ──────────────────────────────────────────────── */
+
+@keyframes rv-fade-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ─── View Transitions — crossfade entre páginas ────────────────────────── */
+
+::view-transition-old(root) {
+  animation: 150ms ease-in both fade-out;
+}
+::view-transition-new(root) {
+  animation: 220ms ease-out 100ms both fade-in;
+}
+
+/* Navbar anclada — no participa en la transición de página */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Respeto prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

@@ -208,49 +208,39 @@ src/lib/visualizer/server/comfyui.ts  ← stub documentado para Fase Producción
 
 ## Preparación previa (HACER ESTO ANTES DEL CÓDIGO)
 
-- [ ] Crear cuenta en **fal.ai** (Sign Up con Google o GitHub)
-- [ ] Dashboard → API Keys → New Key → copiar el valor
-- [ ] Crear `.env.local` en la raíz del proyecto con: `FAL_KEY=fal_xxxxxxxxx` y `AI_ENGINE=flux-kontext`
-- [ ] Ejecutar `npm install @fal-ai/client`
+- [x] Crear cuenta en **fal.ai** (Sign Up con Google o GitHub)
+- [x] Dashboard → API Keys → New Key → copiar el valor
+- [x] Crear `.env.local` en la raíz del proyecto con: `FAL_KEY=fal_xxxxxxxxx` y `AI_ENGINE=flux-kontext`
+- [x] Ejecutar `npm install @fal-ai/client`
 
 ## Implementación — 10 archivos
 
 ### Archivos existentes a modificar
 
-- [ ] `src/components/shared/PhotoUploader.tsx` — agregar `sizes="(max-width: 640px) 50vw, 200px"` en las 2 imágenes `<Image fill>` (fix warning de consola)
-- [ ] `src/lib/constants/rinnovati.ts` — agregar campo opcional `referenceImageUrls?: string[]` al tipo `Product` (sin cambiar los productos existentes — campo opcional)
-- [ ] `src/lib/visualizer/config.ts` — cambiar `mode: "canvas"` → `mode: "ai"`, agregar `aiOptions: { apiRoute: "/api/visualizer", provider: "fal" }`
-- [ ] `src/lib/visualizer/engines/ai.ts` — implementar `generateWithAI()` que hace `fetch("/api/visualizer", POST)` con los parámetros del producto y retorna `{ data, error }`
-- [ ] `src/app/visualizador/[slug]/page.tsx` — cambiar import y uso: `VisualizerCanvas` → `VisualizerAI`
-- [ ] `.env.example` — agregar `FAL_KEY=` y `AI_ENGINE=flux-kontext` (sin valores reales)
+- [x] `src/components/shared/PhotoUploader.tsx` — agregar `sizes="(max-width: 640px) 50vw, 200px"` en las 2 imágenes `<Image fill>` (fix warning de consola)
+- [x] `src/lib/constants/rinnovati.ts` — agregar campo opcional `referenceImageUrls?: string[]` al tipo `Product` (sin cambiar los productos existentes — campo opcional)
+- [x] `src/lib/visualizer/config.ts` — cambiar `mode: "canvas"` → `mode: "ai"`, agregar `aiOptions: { apiRoute: "/api/visualizer", provider: "fal" }`
+- [x] `src/lib/visualizer/engines/ai.ts` — implementar `generateWithAI()` que hace `fetch("/api/visualizer", POST)` con los parámetros del producto y retorna `{ data, error }`
+- [x] `src/app/visualizador/[slug]/page.tsx` — cambiar import y uso: `VisualizerCanvas` → `VisualizerAI`
+- [x] `.env.example` — agregar `FAL_KEY=` y `AI_ENGINE=flux-kontext` (sin valores reales)
 
 ### Archivos nuevos a crear
 
-- [ ] `src/lib/visualizer/server/flux-kontext.ts` — implementación FLUX Kontext. Llama a `fal.subscribe("fal-ai/flux-kontext/max", { input: { prompt, image_url: roomPhoto, reference_image_url: productImageUrl } })`. **Nota:** verificar el nombre exacto del parámetro `reference_image_url` en fal.ai/models al implementar.
-- [ ] `src/lib/visualizer/server/comfyui.ts` — stub documentado con `throw new Error("ComfyUI engine: pendiente implementación Fase Producción")` y comentarios de cómo activarlo
-- [ ] `src/app/api/visualizer/route.ts` — POST handler. Lee `process.env.AI_ENGINE`, despacha a `generateWithFluxKontext()` o `generateWithComfyUI()`. Retorna `{ imageUrl }` o `{ error }`. Wrappear en try/catch.
-- [ ] `src/components/shared/VisualizerAI.tsx` — componente Client con 4 estados: `idle` (selector color + input ancho + botón "✦ Generar"), `generating` (spinner + "~30 segundos"), `done` (imagen resultado + botones [Cambiar foto] [Regenerar] [✓ Agendar cita]), `error` (mensaje + [Reintentar]). Props idénticas a `VisualizerCanvas`: `{ product, roomPhotoUrl, onRetry, onCancel }`. Incluir disclaimer "Imagen generada por IA — resultado orientativo" bajo la imagen.
-
-## UX del estado `done`
-
-```
-┌──────────────────────────────────────────────────────┐
-│         [Imagen generada — full width]               │
-│  Tag: "Camila · Beige Lino · Generado por IA"        │
-└──────────────────────────────────────────────────────┘
-[Cambiar foto]    [Regenerar]    [✓ Agendar cita]
-  Imagen generada por IA — resultado orientativo
-```
+- [x] `src/lib/visualizer/server/flux-kontext.ts`
+- [x] `src/lib/visualizer/server/comfyui.ts` — stub documentado
+- [x] `src/app/api/visualizer/route.ts` — POST handler con Zod + soporte `MOCK_AI`
+- [x] `src/components/shared/VisualizerAI.tsx` — 4 estados: idle / generating / done / error
 
 ## Verificación end-to-end
 
-- [ ] `npm run dev` — sin errores TypeScript ni de compilación
-- [ ] `/catalogo/camila` → "Probar visualizador IA" → PhotoUploader sin warnings de `sizes`
-- [ ] Click "Generar visualización" → spinner → imagen en ~25-40s
-- [ ] La imagen muestra la sala del usuario con el mueble integrado
-- [ ] "Regenerar" produce una variación diferente con la misma sala y mueble
-- [ ] "Agendar cita" abre modal WhatsApp con nombre del producto y color correctos
-- [ ] Probar en mobile — layout responsive sin desbordamientos
+- [x] TypeScript `--noEmit` — 0 errores
+- [x] Todas las rutas responden 200, slugs inválidos → 404
+- [x] API route: mock retorna `{ imageUrl }` correctamente; Zod rechaza body inválido
+- [x] Flujo visualizador validado con mock (3s delay → imagen resultado)
+- [x] WhatsApp modal: props correctas, `roomWidth` persiste entre renders
+- [ ] Verificar en mobile — pendiente prueba manual en dispositivo real
+- [ ] **Cliente**: reemplazar `RINNOVATI_CONFIG.whatsappNumber` con número real antes de lanzar
+- [ ] **Cliente**: activar `MOCK_AI=false` y cargar créditos en fal.ai para prueba real
 
 ## Migración a ComfyUI (Fase Producción — no tocar ahora)
 

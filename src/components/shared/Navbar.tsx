@@ -3,7 +3,10 @@ import { RINNOVATI_CONFIG } from '@/lib/constants/rinnovati'
 
 export function Navbar() {
   return (
-    <nav className="bg-rv-warm-white/95 border-rv-sand fixed top-0 right-0 left-0 z-50 flex h-[72px] items-center justify-between border-b px-[5%] backdrop-blur-sm">
+    <nav
+      style={{ viewTransitionName: 'site-header' }}
+      className="bg-rv-warm-white/95 border-rv-sand fixed top-0 right-0 left-0 z-50 flex h-[72px] items-center justify-between border-b px-[5%] backdrop-blur-sm"
+    >
       <Link
         href="/"
         className="font-heading text-rv-dark text-[26px] font-semibold tracking-[0.05em] no-underline"

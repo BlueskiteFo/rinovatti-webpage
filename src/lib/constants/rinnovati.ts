@@ -2,7 +2,7 @@
 // Reemplazar con datos reales del cliente antes de lanzar
 
 export const RINNOVATI_CONFIG = {
-  whatsappNumber: '51999999999',
+  whatsappNumber: '51920478785',
   instagramUrl: 'https://instagram.com/rinnovati.pe',
   location: 'Lima, Perú',
   tagline: 'Envíos a todo el país',

@@ -13,6 +13,7 @@
     "db:types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/types/database.ts"
   },
   "dependencies": {
+    "@fal-ai/client": "^1.10.1",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.2",
     "class-variance-authority": "^0.7.1",

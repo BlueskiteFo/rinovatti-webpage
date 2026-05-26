@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/shared/Navbar'
 import { Footer } from '@/components/shared/Footer'
 import { PhotoUploader } from '@/components/shared/PhotoUploader'
-import { VisualizerCanvas } from '@/components/shared/VisualizerCanvas'
+import { VisualizerAI } from '@/components/shared/VisualizerAI'
 import { getProductBySlug } from '@/lib/constants/rinnovati'
 
 type Props = {
@@ -73,7 +73,7 @@ export default function VisualizadorPage({ params }: Props) {
           ) : (
             /* Paso 2: Visualizador canvas */
             <div className="mx-auto max-w-4xl">
-              <VisualizerCanvas
+              <VisualizerAI
                 product={product}
                 roomPhotoUrl={roomPhoto}
                 onRetry={() => setRoomPhoto(null)}

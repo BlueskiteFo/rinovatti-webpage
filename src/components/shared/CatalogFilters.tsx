@@ -29,7 +29,10 @@ export function CatalogFilters() {
       </div>
 
       {/* Grid de productos */}
-      <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        key={active}
+        className="grid animate-[rv-fade-in_0.2s_ease-out] grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {filtered.map((product) => (
           <ProductCard key={product.slug} product={product} />
         ))}
