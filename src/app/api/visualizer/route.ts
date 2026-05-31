@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     if (error instanceof InfrastructureError) {
-      // No exponer detalles de proveedor externos
+      console.error('[InfrastructureError]', error.provider, error.message)
       return NextResponse.json(
         { error: 'Error del servicio de visualización externa' },
         { status: 500 }

@@ -14,4 +14,12 @@ export interface IProductRepository {
 
   /** Busca un producto por su slug. Retorna null si no existe. */
   getBySlug(slug: string): Promise<Product | null>
+
+  /**
+   * Persiste un nuevo producto en la base de datos.
+   * @param product - Datos del producto sin el campo `id` (lo genera la DB).
+   * @returns El producto completo con el `id` asignado por la base de datos.
+   * @throws InfrastructureError si la operación falla en la capa de persistencia.
+   */
+  create(product: Omit<Product, 'id'>): Promise<Product>
 }

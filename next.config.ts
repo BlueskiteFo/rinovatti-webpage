@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'panel.construproductos.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'kagpnfcoiyvqmwpnxkmf.supabase.co',
+      },
     ],
   },
 }

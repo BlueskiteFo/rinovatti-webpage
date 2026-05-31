@@ -112,27 +112,29 @@ export function VisualizerCanvas({ product, roomPhotoUrl, onRetry, onCancel }: P
         />
 
         {/* Mueble superpuesto — arrastrable */}
-        <div
-          className="absolute cursor-grab active:cursor-grabbing"
-          style={{
-            left: '50%',
-            top: '60%',
-            transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
-            width: `${scale}%`,
-          }}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={stopDrag}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.overlayImageUrl}
-            alt={product.name}
-            draggable={false}
-            style={{ opacity: overlayOpacity, width: '100%', display: 'block' }}
-          />
-        </div>
+        {product.overlayImageUrl && (
+          <div
+            className="absolute cursor-grab active:cursor-grabbing"
+            style={{
+              left: '50%',
+              top: '60%',
+              transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
+              width: `${scale}%`,
+            }}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={stopDrag}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.overlayImageUrl}
+              alt={product.name}
+              draggable={false}
+              style={{ opacity: overlayOpacity, width: '100%', display: 'block' }}
+            />
+          </div>
+        )}
 
         {/* Tag del mueble */}
         <div className="bg-rv-dark/80 absolute bottom-5 left-5 rounded px-4 py-3 text-white backdrop-blur-sm">

@@ -49,7 +49,7 @@ export function ProductCard({ product }: Props) {
         <p className="text-rv-mid mb-3 text-[12px] tracking-[0.05em]">{product.material}</p>
 
         <div className="flex items-center justify-between">
-          <span className="text-rv-dark text-[16px] font-medium">{product.price}</span>
+          <span className="text-rv-dark text-[16px] font-medium">S/ {product.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
           <div className="flex gap-1.5">
             {product.colors.map((color) => (
               <span

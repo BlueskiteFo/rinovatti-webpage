@@ -111,7 +111,7 @@ export default async function ProductoPage({ params }: Props) {
             </div>
 
             {/* Precio */}
-            <p className="text-rv-dark mb-8 text-[22px] font-medium">{product.price}</p>
+            <p className="text-rv-dark mb-8 text-[22px] font-medium">S/ {product.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
 
             {/* Botones CTA */}
             <div className="flex flex-col gap-3 sm:flex-row">
