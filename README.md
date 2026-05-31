@@ -48,6 +48,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://<TU-PROYECTO>.supabase.co
 
 # Clave anónima pública de Supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+
+# API Key de Google Gemini (Visualizador IA)
+GEMINI_API_KEY=AIzaSy...
 ```
 
 > **Nota:** Adicionalmente, revisa el archivo `next.config.ts`. El hostname de Supabase (`<TU-PROYECTO>.supabase.co`) debe estar agregado al array de `images.remotePatterns` para que Next.js permita renderizar las imágenes remotas.
