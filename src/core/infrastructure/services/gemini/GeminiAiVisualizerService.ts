@@ -68,35 +68,64 @@ export class GeminiAiVisualizerService implements IAIVisualizerService {
    * altamente detallado en inglés.
    */
   private async analyzeRoomAndBuildPrompt(request: VisualizerRequest): Promise<string> {
-    const base64Image = this.extractBase64(request.roomImageBase64)
+    const base64RoomImage = this.extractBase64(request.roomImageBase64)
+    
+    // Descargar imagen del producto para pasarla al modelo de análisis
+    let base64ProductImage = ''
+    let productMimeType = 'image/jpeg'
+    try {
+      const imgRes = await fetch(request.productImageUrl)
+      const buffer = await imgRes.arrayBuffer()
+      base64ProductImage = Buffer.from(buffer).toString('base64')
+      
+      const contentType = imgRes.headers.get('content-type')
+      if (contentType) productMimeType = contentType
+    } catch (error) {
+      console.warn('[GeminiAI] No se pudo descargar la imagen del producto para el análisis', error)
+    }
 
     const analysisPrompt =
       `You are an expert interior designer and prompt engineer for AI image generation. ` +
-      `Analyze the provided room photo carefully, noting the style, lighting, colors, and layout. ` +
-      `\n\nThe user wants to visualize the following furniture piece integrated into this room:\n` +
+      `Analyze the FIRST image (the room) carefully, noting the style, lighting, perspective, colors, and layout. ` +
+      `Then, analyze the SECOND image (the furniture product) carefully, noting its exact shape, design, number of cushions, legs style, armrests, material texture, and overall geometry.\n\n` +
+      `The user wants to visualize this exact furniture piece integrated into the room.\n` +
       `- Product: ${request.productName}\n` +
       `- Color: ${request.colorName}\n` +
       `- Material: ${request.material || 'unspecified'}\n` +
       `\nGenerate ONLY a highly detailed image generation prompt in English (no explanation, ` +
       `no preamble, no markdown, just the prompt text). ` +
-      `The prompt must describe how the furniture piece would look naturally integrated in the room, ` +
-      `respecting the room's existing lighting, perspective, shadows, color palette, and architectural style. ` +
-      `The room should remain unchanged except for the addition of the furniture piece.`
+      `The prompt MUST meticulously describe the physical appearance of the furniture piece from the second image (shape, legs, cushions, style) ` +
+      `and describe how it is placed naturally into the room from the first image. ` +
+      `Respect the room's existing lighting, perspective, shadows, and architectural style.`
+
+    const parts: Part[] = [
+      { text: 'Room Image:' },
+      {
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64RoomImage,
+        },
+      }
+    ]
+
+    if (base64ProductImage) {
+      parts.push({ text: 'Furniture Product Image:' })
+      parts.push({
+        inlineData: {
+          mimeType: productMimeType,
+          data: base64ProductImage,
+        },
+      })
+    }
+
+    parts.push({ text: analysisPrompt })
 
     const response = await this.ai.models.generateContent({
       model: this.ANALYSIS_MODEL,
       contents: [
         {
           role: 'user',
-          parts: [
-            {
-              inlineData: {
-                mimeType: 'image/jpeg',
-                data: base64Image,
-              },
-            },
-            { text: analysisPrompt },
-          ],
+          parts,
         },
       ],
     })
