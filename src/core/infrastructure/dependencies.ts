@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { IProductRepository, IAIVisualizerService, IStorageService } from '@/core/application/ports'
-import { GenerateRoomVisualizationUseCase, CreateProductUseCase } from '@/core/application/use-cases'
+import { GenerateRoomVisualizationUseCase, CreateProductUseCase, UpdateProductUseCase, DeleteProductUseCase } from '@/core/application/use-cases'
 import { GeminiAiVisualizerService } from '@/core/infrastructure/services/gemini/GeminiAiVisualizerService'
 import { SupabaseProductRepository } from '@/core/infrastructure/database/supabase/SupabaseProductRepository'
 import { SupabaseStorageService } from '@/core/infrastructure/storage/SupabaseStorageService'
@@ -28,6 +28,16 @@ export const generateRoomVisualizationUseCase = new GenerateRoomVisualizationUse
 )
 
 export const createProductUseCase = new CreateProductUseCase(
+  productRepository,
+  storageService,
+)
+
+export const updateProductUseCase = new UpdateProductUseCase(
+  productRepository,
+  storageService,
+)
+
+export const deleteProductUseCase = new DeleteProductUseCase(
   productRepository,
   storageService,
 )

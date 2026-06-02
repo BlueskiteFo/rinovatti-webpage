@@ -16,10 +16,33 @@ export interface IProductRepository {
   getBySlug(slug: string): Promise<Product | null>
 
   /**
+   * Busca un producto por su UUID. Retorna null si no existe.
+   * @param id - UUID del producto a buscar.
+   */
+  getById(id: string): Promise<Product | null>
+
+  /**
    * Persiste un nuevo producto en la base de datos.
    * @param product - Datos del producto sin el campo `id` (lo genera la DB).
    * @returns El producto completo con el `id` asignado por la base de datos.
    * @throws InfrastructureError si la operación falla en la capa de persistencia.
    */
   create(product: Omit<Product, 'id'>): Promise<Product>
+
+  /**
+   * Actualiza parcialmente un producto existente.
+   * @param id - UUID del producto a actualizar.
+   * @param data - Campos a actualizar (todos opcionales).
+   * @returns El producto completo con los datos actualizados.
+   * @throws NotFoundError si el producto no existe.
+   * @throws InfrastructureError si la operación falla en la capa de persistencia.
+   */
+  update(id: string, data: Partial<Omit<Product, 'id'>>): Promise<Product>
+
+  /**
+   * Elimina permanentemente un producto de la base de datos.
+   * @param id - UUID del producto a eliminar.
+   * @throws InfrastructureError si la operación falla en la capa de persistencia.
+   */
+  delete(id: string): Promise<void>
 }

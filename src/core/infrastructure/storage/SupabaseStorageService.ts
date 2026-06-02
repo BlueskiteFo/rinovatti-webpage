@@ -41,4 +41,40 @@ export class SupabaseStorageService implements IStorageService {
 
     return publicUrlData.publicUrl
   }
+
+  async deleteImage(url: string): Promise<void> {
+    // Extraer la ruta relativa dentro del bucket a partir de la URL pública.
+    // Supabase Storage genera URLs con el patrón:
+    //   <supabaseUrl>/storage/v1/object/public/<bucket>/<path>
+    // Necesitamos solo la parte <path> para llamar a .remove().
+    let filePath: string
+
+    try {
+      const parsed = new URL(url)
+      // El pathname tiene forma: /storage/v1/object/public/product-images/products/file.jpg
+      const marker = `/public/${this.bucket}/`
+      const markerIndex = parsed.pathname.indexOf(marker)
+
+      if (markerIndex === -1) {
+        // URL no pertenece a este bucket: ignoramos silenciosamente
+        return
+      }
+
+      filePath = parsed.pathname.slice(markerIndex + marker.length)
+    } catch {
+      // URL malformada: ignoramos silenciosamente
+      return
+    }
+
+    const { error } = await this.supabase.storage
+      .from(this.bucket)
+      .remove([filePath])
+
+    if (error) {
+      throw new InfrastructureError(
+        `Error eliminando imagen del Storage: ${error.message}`,
+        'SupabaseStorage',
+      )
+    }
+  }
 }

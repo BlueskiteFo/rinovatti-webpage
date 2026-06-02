@@ -1,191 +1,164 @@
-'use client'
-
-import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
-import { createProductAction } from './actions'
+import Link from 'next/link'
+import Image from 'next/image'
+import { productRepository } from '@/core/infrastructure/dependencies'
+import { DeleteProductButton } from '@/app/dashboard/_components/DeleteProductButton'
 import { Navbar } from '@/components/shared/Navbar'
 import { Footer } from '@/components/shared/Footer'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="bg-rv-dark hover:bg-rv-terracotta mt-4 w-full rounded-[2px] px-8 py-3.5 text-[12px] font-medium tracking-[0.1em] text-white uppercase no-underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {pending ? 'Guardando...' : 'Crear Producto'}
-    </button>
-  )
+export const metadata = {
+  title: 'Dashboard — Rinnovati Admin',
+  description: 'Gestión de productos del catálogo Rinnovati.',
 }
 
-export default function DashboardPage() {
-  const [state, formAction] = useActionState(createProductAction, null)
+const CATEGORY_LABELS: Record<string, string> = {
+  sofas: 'Sofás',
+  seccionales: 'Seccionales',
+  butacas: 'Butacas',
+  mesas: 'Mesas',
+  dormitorios: 'Dormitorios',
+}
+
+export default async function DashboardPage() {
+  const products = await productRepository.getAll()
 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-rv-cream pt-[120px] pb-24 px-[8%] flex flex-col items-center">
-        <div className="w-full max-w-2xl bg-white p-8 md:p-12 shadow-sm border border-rv-sand/50 rounded-sm">
-          <div className="mb-8 text-center">
-            <p className="text-rv-terracotta mb-3 text-[11px] font-medium tracking-[0.2em] uppercase">
+      <main className="min-h-screen bg-rv-cream pt-[120px] pb-24 px-[5%]">
+
+        {/* ── Encabezado ─────────────────────────────────────────────────── */}
+        <div className="mb-10 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-rv-terracotta mb-2 text-[11px] font-medium tracking-[0.2em] uppercase">
               Dashboard de Administración
             </p>
-            <h1 className="font-heading text-rv-dark text-[clamp(32px,4vw,48px)] leading-[1.15] font-light">
-              Añadir un <br className="md:hidden" />
-              <em className="italic">nuevo producto</em>
+            <h1 className="font-heading text-rv-dark text-[clamp(28px,3.5vw,44px)] leading-[1.15] font-light">
+              Catálogo de <em className="italic">productos</em>
             </h1>
-            <p className="text-rv-mid mt-4 text-[14px] leading-relaxed font-light max-w-md mx-auto">
-              Ingresa los detalles del nuevo mueble para añadirlo al catálogo de Rinnovati.
-            </p>
           </div>
-
-          {state?.success && (
-            <div className="mb-8 p-4 text-rv-dark bg-rv-gold-light/50 border border-rv-gold/30 rounded-sm text-center text-sm">
-              ¡Producto creado con éxito! Puedes añadir otro si lo deseas.
-            </div>
-          )}
-
-          {state?.error && (
-            <div className="mb-8 p-4 text-red-800 bg-red-50 border border-red-200 rounded-sm text-center text-sm">
-              {state.error}
-            </div>
-          )}
-
-          <form action={formAction} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 md:col-span-2">
-                <label
-                  htmlFor="name"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Nombre del producto
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  className="flex h-11 w-full rounded-sm border border-rv-sand bg-white px-4 py-2 text-[14px] text-rv-dark placeholder:text-rv-mid/50 focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors"
-                  placeholder="Ej: Sofá Nórdico Premium"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="category"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Categoría
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  required
-                  className="flex h-11 w-full rounded-sm border border-rv-sand bg-white px-4 py-2 text-[14px] text-rv-dark focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors"
-                >
-                  <option value="sofas">Sofás</option>
-                  <option value="mesas">Mesas</option>
-                  <option value="butacas">Butacas</option>
-                  <option value="seccionales">Seccionales</option>
-                  <option value="dormitorios">Dormitorios</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="price"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Precio (S/)
-                </label>
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  required
-                  className="flex h-11 w-full rounded-sm border border-rv-sand bg-white px-4 py-2 text-[14px] text-rv-dark placeholder:text-rv-mid/50 focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors"
-                  placeholder="Ej: 1500.00"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label
-                  htmlFor="material"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Material
-                </label>
-                <input
-                  id="material"
-                  name="material"
-                  type="text"
-                  required
-                  className="flex h-11 w-full rounded-sm border border-rv-sand bg-white px-4 py-2 text-[14px] text-rv-dark placeholder:text-rv-mid/50 focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors"
-                  placeholder="Ej: Estructura de pino, tapizado en lino"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label
-                  htmlFor="description"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Descripción
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  required
-                  className="flex min-h-[100px] w-full rounded-sm border border-rv-sand bg-white px-4 py-3 text-[14px] text-rv-dark placeholder:text-rv-mid/50 focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors resize-y"
-                  placeholder="Describe las características y beneficios del producto..."
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label
-                  htmlFor="colors"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Colores (separados por comas)
-                </label>
-                <input
-                  id="colors"
-                  name="colors"
-                  type="text"
-                  required
-                  className="flex h-11 w-full rounded-sm border border-rv-sand bg-white px-4 py-2 text-[14px] text-rv-dark placeholder:text-rv-mid/50 focus:border-rv-terracotta focus:outline-none focus:ring-1 focus:ring-rv-terracotta transition-colors"
-                  placeholder="Ej: blanco, negro, beige"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label
-                  htmlFor="imageFile"
-                  className="text-[11px] font-medium text-rv-charcoal uppercase tracking-[0.1em]"
-                >
-                  Imagen Principal
-                </label>
-                <div className="relative">
-                  <input
-                    id="imageFile"
-                    name="imageFile"
-                    type="file"
-                    accept="image/*"
-                    required
-                    className="flex w-full rounded-sm border border-rv-sand bg-white px-4 py-2.5 text-[14px] text-rv-dark file:mr-4 file:rounded file:border-0 file:bg-rv-dark file:px-4 file:py-1.5 file:text-[11px] file:font-medium file:text-white file:uppercase file:tracking-wider hover:file:bg-rv-terracotta focus:border-rv-terracotta focus:outline-none transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <SubmitButton />
-            </div>
-          </form>
+          <Link
+            href="/dashboard/new"
+            className="inline-flex items-center gap-2 bg-rv-dark hover:bg-rv-terracotta transition-colors px-6 py-3 rounded-sm text-white text-[12px] font-medium tracking-[0.1em] uppercase"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nuevo Producto
+          </Link>
         </div>
+
+        {/* ── Tabla de productos ─────────────────────────────────────────── */}
+        <div className="bg-white border border-rv-sand/50 rounded-sm shadow-sm overflow-hidden">
+          {products.length === 0 ? (
+            <div className="py-24 text-center">
+              <p className="text-rv-mid text-[14px]">No hay productos en el catálogo todavía.</p>
+              <Link
+                href="/dashboard/new"
+                className="mt-4 inline-block text-rv-terracotta text-[13px] underline underline-offset-4"
+              >
+                Añade el primero
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-rv-sand/60 bg-rv-cream/50">
+                    <th className="px-5 py-3.5 text-[10px] font-semibold text-rv-charcoal uppercase tracking-[0.15em]">
+                      Imagen
+                    </th>
+                    <th className="px-5 py-3.5 text-[10px] font-semibold text-rv-charcoal uppercase tracking-[0.15em]">
+                      Nombre
+                    </th>
+                    <th className="px-5 py-3.5 text-[10px] font-semibold text-rv-charcoal uppercase tracking-[0.15em] hidden sm:table-cell">
+                      Categoría
+                    </th>
+                    <th className="px-5 py-3.5 text-[10px] font-semibold text-rv-charcoal uppercase tracking-[0.15em] hidden md:table-cell">
+                      Precio
+                    </th>
+                    <th className="px-5 py-3.5 text-[10px] font-semibold text-rv-charcoal uppercase tracking-[0.15em]">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product, idx) => (
+                    <tr
+                      key={product.id}
+                      className={`border-b border-rv-sand/40 transition-colors hover:bg-rv-cream/30 ${idx % 2 === 0 ? '' : 'bg-rv-cream/10'}`}
+                    >
+                      {/* Miniatura */}
+                      <td className="px-5 py-3">
+                        <div className="relative h-12 w-16 overflow-hidden rounded-sm bg-rv-sand/20 flex-shrink-0">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Nombre */}
+                      <td className="px-5 py-3">
+                        <span className="text-[14px] font-medium text-rv-dark leading-snug">
+                          {product.name}
+                        </span>
+                        {product.badge && (
+                          <span className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded bg-rv-terracotta/10 text-rv-terracotta">
+                            {product.badge}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Categoría */}
+                      <td className="px-5 py-3 hidden sm:table-cell">
+                        <span className="text-[13px] text-rv-mid">
+                          {CATEGORY_LABELS[product.category] ?? product.category}
+                        </span>
+                      </td>
+
+                      {/* Precio */}
+                      <td className="px-5 py-3 hidden md:table-cell">
+                        <span className="text-[13px] font-medium text-rv-dark">
+                          S/ {product.price.toLocaleString('es-PE')}
+                        </span>
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          {/* Editar */}
+                          <Link
+                            href={`/dashboard/${product.id}/edit`}
+                            className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.08em] uppercase text-rv-charcoal border border-rv-sand px-3 py-1.5 rounded-sm hover:bg-rv-dark hover:text-white hover:border-rv-dark transition-colors"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                            Editar
+                          </Link>
+
+                          {/* Eliminar */}
+                          <DeleteProductButton
+                            productId={product.id!}
+                            productName={product.name}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <p className="mt-4 text-right text-[12px] text-rv-mid">
+          {products.length} producto{products.length !== 1 ? 's' : ''} en el catálogo
+        </p>
       </main>
       <Footer />
     </>

@@ -52,6 +52,25 @@ function toRow(product: Omit<Product, 'id'>): Omit<ProductRow, 'id' | 'created_a
   }
 }
 
+/** Convierte una actualización parcial de dominio (camelCase) a snake_case para Supabase */
+function toPartialRow(
+  data: Partial<Omit<Product, 'id'>>,
+): Partial<Omit<ProductRow, 'id' | 'created_at'>> {
+  const row: Partial<Omit<ProductRow, 'id' | 'created_at'>> = {}
+
+  if (data.slug !== undefined)           row.slug              = data.slug
+  if (data.name !== undefined)           row.name              = data.name
+  if (data.category !== undefined)       row.category          = data.category
+  if (data.price !== undefined)          row.price             = data.price
+  if (data.material !== undefined)       row.material          = data.material
+  if (data.description !== undefined)    row.description       = data.description
+  if (data.imageUrl !== undefined)       row.image_url         = data.imageUrl
+  if ('overlayImageUrl' in data)         row.overlay_image_url = data.overlayImageUrl ?? null
+  if (data.colors !== undefined)         row.colors            = data.colors
+
+  return row
+}
+
 // ─── Repositorio ──────────────────────────────────────────────────────────────
 
 /**
@@ -120,6 +139,27 @@ export class SupabaseProductRepository implements IProductRepository {
     return toDomain(data as ProductRow)
   }
 
+  async getById(id: string): Promise<Product | null> {
+    const { data, error } = await this.supabase
+      .from(this.table)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) {
+      throw new InfrastructureError(
+        `Error buscando producto con id "${id}": ${error.message}`,
+        'SupabaseDB',
+      )
+    }
+
+    if (!data) {
+      return null
+    }
+
+    return toDomain(data as ProductRow)
+  }
+
   async create(product: Omit<Product, 'id'>): Promise<Product> {
     const row = toRow(product)
 
@@ -127,7 +167,6 @@ export class SupabaseProductRepository implements IProductRepository {
       .from(this.table)
       .insert(row)
       .select()
-      .single()
 
     if (error) {
       throw new InfrastructureError(
@@ -136,6 +175,58 @@ export class SupabaseProductRepository implements IProductRepository {
       )
     }
 
-    return toDomain(data as ProductRow)
+    const created = (data as ProductRow[])[0]
+    if (!created) {
+      throw new InfrastructureError(
+        'El producto fue insertado pero no se pudo recuperar el registro creado.',
+        'SupabaseDB',
+      )
+    }
+
+    return toDomain(created)
+  }
+
+  async update(id: string, data: Partial<Omit<Product, 'id'>>): Promise<Product> {
+    const partialRow = toPartialRow(data)
+
+    // ── 1. Ejecutar el UPDATE sin intentar recuperar la fila de vuelta.
+    //    RLS puede bloquear el SELECT inline del mismo statement aunque
+    //    sí permite la escritura. Separamos las dos operaciones.
+    const { error } = await this.supabase
+      .from(this.table)
+      .update(partialRow)
+      .eq('id', id)
+
+    if (error) {
+      throw new InfrastructureError(
+        `Error actualizando producto con id "${id}": ${error.message}`,
+        'SupabaseDB',
+      )
+    }
+
+    // ── 2. Leer el producto actualizado con una query SELECT independiente.
+    const updated = await this.getById(id)
+    if (!updated) {
+      throw new InfrastructureError(
+        `Producto con id "${id}" no encontrado tras la actualización.`,
+        'SupabaseDB',
+      )
+    }
+
+    return updated
+  }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from(this.table)
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      throw new InfrastructureError(
+        `Error eliminando producto con id "${id}": ${error.message}`,
+        'SupabaseDB',
+      )
+    }
   }
 }

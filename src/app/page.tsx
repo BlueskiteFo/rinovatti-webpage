@@ -53,8 +53,8 @@ export default async function HomePage() {
             src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80"
             alt="Sala Rinnovati"
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            unoptimized={true}
+            className="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-[1.03]"
             priority
           />
           <div className="bg-rv-dark/85 absolute bottom-10 left-10 rounded px-5 py-4 text-white backdrop-blur-sm">

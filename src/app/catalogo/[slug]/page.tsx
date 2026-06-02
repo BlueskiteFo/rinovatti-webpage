@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Navbar } from '@/components/shared/Navbar'
 import { Footer } from '@/components/shared/Footer'
+import { ProductImageZoom } from '@/components/shared/ProductImageZoom'
 import { productRepository } from '@/core/infrastructure/dependencies'
 import { RINNOVATI_CONFIG } from '@/lib/constants/rinnovati'
 import type { Metadata } from 'next'
@@ -52,26 +52,12 @@ export default async function ProductoPage({ params }: Props) {
 
         {/* Producto */}
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
-          {/* Imagen */}
-          <div className="bg-rv-cream relative aspect-[4/3] overflow-hidden md:aspect-auto md:min-h-[500px]">
-            <Image
-              src={product.imageUrl}
-              alt={product.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-              priority
-            />
-            {product.badge && (
-              <span
-                className={`absolute top-5 left-5 rounded-[2px] px-3 py-1.5 text-[10px] font-medium tracking-[0.1em] text-white uppercase ${
-                  product.badge === 'nuevo' ? 'bg-rv-dark' : 'bg-rv-terracotta'
-                }`}
-              >
-                {product.badge === 'nuevo' ? 'Nuevo' : 'Popular'}
-              </span>
-            )}
-          </div>
+          {/* ── Imagen Interactiva ─────────────────────────────────────── */}
+          <ProductImageZoom 
+            imageUrl={product.imageUrl} 
+            productName={product.name}
+            badge={product.badge}
+          />
 
           {/* Info */}
           <div className="bg-rv-warm-white flex flex-col justify-center px-[8%] py-16">

@@ -66,9 +66,9 @@ export class CreateProductUseCase {
       material: formData.get('material'),
       description: formData.get('description'),
       colors: formData.get('colors'),
-      overlayImageUrl: formData.get('overlayImageUrl') ?? null,
-      badge: formData.get('badge') ?? undefined,
-      dimensions: formData.get('dimensions') ?? undefined,
+      overlayImageUrl: formData.get('overlayImageUrl') || null,
+      badge: formData.get('badge') || undefined,
+      dimensions: formData.get('dimensions') || undefined,
     }
 
     const imageFile = formData.get('imageFile')

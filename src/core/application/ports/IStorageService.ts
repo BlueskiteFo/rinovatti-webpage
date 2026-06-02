@@ -16,4 +16,13 @@ export interface IStorageService {
    * @throws InfrastructureError si la subida falla en el proveedor externo
    */
   uploadImage(file: File, path: string): Promise<string>
+
+  /**
+   * Elimina un archivo del servicio de almacenamiento a partir de su URL pública.
+   * Si el archivo no existe, no lanza error (operación idempotente).
+   *
+   * @param url - URL pública del archivo a eliminar
+   * @throws InfrastructureError si la eliminación falla en el proveedor externo
+   */
+  deleteImage(url: string): Promise<void>
 }

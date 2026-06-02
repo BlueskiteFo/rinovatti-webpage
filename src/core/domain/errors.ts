@@ -54,6 +54,10 @@ export class ValidationError extends DomainError {
   /** Crea un ValidationError a partir de un ZodError */
   static fromZodError(zodError: { flatten(): { fieldErrors: Record<string, string[]> } }): ValidationError {
     const flat = zodError.flatten()
-    return new ValidationError('Datos de entrada inválidos', flat.fieldErrors)
+    const errorDetails = Object.entries(flat.fieldErrors)
+      .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
+      .join(' | ')
+    const message = errorDetails ? `Datos inválidos -> ${errorDetails}` : 'Datos de entrada inválidos'
+    return new ValidationError(message, flat.fieldErrors)
   }
 }
