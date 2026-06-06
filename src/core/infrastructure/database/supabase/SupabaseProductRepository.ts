@@ -15,6 +15,8 @@ interface ProductRow {
   description: string
   image_url: string
   overlay_image_url: string | null
+  /** URLs de renders del producto usadas como contexto visual para la IA */
+  context_images: string[]
   colors: Array<{ name: string; hex: string }>
   created_at: string
 }
@@ -33,6 +35,7 @@ function toDomain(row: ProductRow): Product {
     description: row.description,
     imageUrl: row.image_url,
     overlayImageUrl: row.overlay_image_url,
+    referenceImageUrls: row.context_images?.length ? row.context_images : undefined,
     colors: row.colors,
   }
 }
@@ -48,6 +51,7 @@ function toRow(product: Omit<Product, 'id'>): Omit<ProductRow, 'id' | 'created_a
     description: product.description,
     image_url: product.imageUrl,
     overlay_image_url: product.overlayImageUrl ?? null,
+    context_images: product.referenceImageUrls ?? [],
     colors: product.colors,
   }
 }
@@ -58,15 +62,16 @@ function toPartialRow(
 ): Partial<Omit<ProductRow, 'id' | 'created_at'>> {
   const row: Partial<Omit<ProductRow, 'id' | 'created_at'>> = {}
 
-  if (data.slug !== undefined)           row.slug              = data.slug
-  if (data.name !== undefined)           row.name              = data.name
-  if (data.category !== undefined)       row.category          = data.category
-  if (data.price !== undefined)          row.price             = data.price
-  if (data.material !== undefined)       row.material          = data.material
-  if (data.description !== undefined)    row.description       = data.description
-  if (data.imageUrl !== undefined)       row.image_url         = data.imageUrl
-  if ('overlayImageUrl' in data)         row.overlay_image_url = data.overlayImageUrl ?? null
-  if (data.colors !== undefined)         row.colors            = data.colors
+  if (data.slug !== undefined)              row.slug              = data.slug
+  if (data.name !== undefined)              row.name              = data.name
+  if (data.category !== undefined)          row.category          = data.category
+  if (data.price !== undefined)             row.price             = data.price
+  if (data.material !== undefined)          row.material          = data.material
+  if (data.description !== undefined)       row.description       = data.description
+  if (data.imageUrl !== undefined)          row.image_url         = data.imageUrl
+  if ('overlayImageUrl' in data)            row.overlay_image_url = data.overlayImageUrl ?? null
+  if (data.referenceImageUrls !== undefined) row.context_images   = data.referenceImageUrls
+  if (data.colors !== undefined)            row.colors            = data.colors
 
   return row
 }
