@@ -1,0 +1,29 @@
+# Antigravity 2.0 Rules: Rinnovati Webpage - Clean Architecture
+
+## 1. Tech Stack
+- Framework: Next.js 16 (App Router)
+- Language: TypeScript (Strict mode enabled)
+- Styling: Tailwind CSS v4 + shadcn/ui
+- Database & Auth: Supabase (PostgreSQL)
+- Validation: Zod
+- AI Engine: fal.ai (FLUX Kontext Max)
+
+## 2. Architectural Principles (Clean Architecture)
+- **Dependency Rule:** Source code dependencies must point ONLY inward toward the Domain layer.
+- **Layers:**
+  - `src/core/domain`: Pure TypeScript. Entities, Types, Zod schemas, Domain Errors. NO external imports (no React, no Next.js, no Supabase).
+  - `src/core/application`: Business logic (Use Cases), Interfaces/Ports (Repositories, Services).
+  - `src/core/infrastructure`: External implementations (Supabase clients, fal.ai integrations, external APIs).
+  - `src/app` & `src/components`: Presentation layer. Consumes Use Cases via Dependency Injection or Server Actions.
+- **Single Responsibility:** Every class, function, or file must have a single reason to change.
+
+## 3. Coding Standards
+- Use the Repository Pattern to abstract database operations.
+- Implement Dependency Injection for Use Cases (pass repositories/services through constructors or factory functions).
+- Define custom error classes (e.g., `DomainError`, `InfrastructureError`) for predictable error handling.
+- Use explicit return types for all functions and methods.
+- Favor early returns to avoid deeply nested code.
+
+## 4. UI / Next.js Specifics
+- Server Components by default. Use `"use client"` ONLY at the lowest possible leaf node (e.g., interactive buttons, forms).
+- Route Handlers (`app/api/...`) and Server Actions must be lean: they only extract request data, call a Use Case, and return the formatted response.
