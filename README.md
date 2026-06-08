@@ -40,7 +40,7 @@ Se requiere un **Storage Bucket** llamado `product-images` configurado como **P�
 
 ## 🔑 Variables de Entorno
 
-Para ejecutar este proyecto de forma local, necesitas crear un archivo `.env.local` en la raíz del proyecto con las siguientes claves proporcionadas por tu proyecto de Supabase:
+Para ejecutar este proyecto de forma local, necesitas crear un archivo `.env.local` en la raíz del proyecto con las siguientes claves:
 
 ```env
 # URL de la API de Supabase
@@ -49,11 +49,22 @@ NEXT_PUBLIC_SUPABASE_URL=https://<TU-PROYECTO>.supabase.co
 # Clave anónima pública de Supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 
-# API Key de Google Gemini (Visualizador IA)
-GEMINI_API_KEY=AIzaSy...
+# API Key de fal.ai (Generación de imágenes con FLUX Kontext Max)
+FAL_KEY=...
 ```
 
 > **Nota:** Adicionalmente, revisa el archivo `next.config.ts`. El hostname de Supabase (`<TU-PROYECTO>.supabase.co`) debe estar agregado al array de `images.remotePatterns` para que Next.js permita renderizar las imágenes remotas.
+
+---
+
+## 🤖 Generación de Imágenes con IA
+
+El visualizador de habitaciones utiliza **fal.ai** con el modelo **FLUX Kontext Max** para integrar muebles de forma realista en fotos de habitaciones reales.
+
+- **Servicio:** [`FalAiVisualizerService`](src/core/infrastructure/services/fal-ai/FalAiVisualizerService.ts)
+- **Modelo:** `fal-ai/flux-kontext/max`
+- **API Route:** `/api/visualizer`
+- **Obtén tu API Key en:** [fal.ai/dashboard](https://fal.ai/dashboard)
 
 ---
 

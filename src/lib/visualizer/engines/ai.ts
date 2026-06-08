@@ -23,11 +23,16 @@ async function uploadRoomImage(dataUrl: string): Promise<string> {
   return json.url
 }
 
+/**
+ * Llama a la API del visualizador y obtiene las 4 URLs de perspectiva.
+ * Retorna { data: { imageUrls: string[] } } en caso de éxito.
+ */
 export async function generateWithAI(params: {
   roomImageBase64: string
   product: Product
   colorName: string
-}): Promise<{ data: { imageUrl: string } | null; error: string | null }> {
+  translation?: string
+}): Promise<{ data: { imageUrls: string[] } | null; error: string | null }> {
   const apiRoute = VISUALIZER_CONFIG.aiOptions?.apiRoute ?? '/api/visualizer'
 
   try {
@@ -53,6 +58,7 @@ export async function generateWithAI(params: {
         colorName: params.colorName,
         material: params.product.material,
         referenceImageUrls: params.product.referenceImageUrls ?? [],
+        translation: params.translation,
       }),
     })
 
@@ -66,12 +72,12 @@ export async function generateWithAI(params: {
       }
     }
 
-    const imageUrl = (json as Record<string, unknown>).imageUrl
-    if (typeof imageUrl !== 'string') {
+    const imageUrls = (json as Record<string, unknown>).imageUrls
+    if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
       return { data: null, error: 'Respuesta inesperada del servidor' }
     }
 
-    return { data: { imageUrl }, error: null }
+    return { data: { imageUrls: imageUrls as string[] }, error: null }
   } catch (err) {
     return {
       data: null,
