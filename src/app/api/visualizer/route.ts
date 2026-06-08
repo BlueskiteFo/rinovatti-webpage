@@ -8,8 +8,8 @@ export async function POST(req: Request) {
   try {
     const body: unknown = await req.json()
     const useCase = new GenerateRoomVisualizationUseCase(aiVisualizerService)
-    const imageUrl = await useCase.execute(body)
-    return NextResponse.json({ imageUrl })
+    const imageUrls = await useCase.execute(body)
+    return NextResponse.json({ imageUrls })
   } catch (error) {
     if (error instanceof ValidationError) {
       return NextResponse.json(

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TranslationDirection } from './transformation'
 
 // ─── Esquemas Zod ─────────────────────────────────────────────────────────────
 
@@ -14,14 +15,15 @@ export const VisualizerRequestSchema = z.object({
   colorName: z.string().min(1),
   /** Descripción del material del producto */
   material: z.string(),
-  /** URLs de fotos de referencia adicionales (para IP-Adapter / ComfyUI) */
   referenceImageUrls: z.array(z.string().url()).optional(),
+  /** Dirección opcional para trasladar el mueble (izquierda o derecha) */
+  translation: z.nativeEnum(TranslationDirection).optional(),
 })
 
 /** Esquema de la respuesta exitosa del visualizador */
 export const VisualizerResponseSchema = z.object({
-  /** URL de la imagen generada por IA con el mueble integrado en la sala */
-  imageUrl: z.string().url(),
+  /** URLs de las 4 imágenes generadas por IA (Centro, Izquierda, Derecha, Fondo) */
+  imageUrls: z.array(z.string().url()).min(1),
 })
 
 /** Esquema de la respuesta de error del visualizador */
@@ -32,5 +34,5 @@ export const VisualizerErrorResponseSchema = z.object({
 // ─── Tipos inferidos ──────────────────────────────────────────────────────────
 
 export type VisualizerRequest = z.infer<typeof VisualizerRequestSchema>
-export type VisualizerResponse = z.infer<typeof VisualizerResponseSchema>
+export type VisualizerResponse = z.infer<typeof VisualizerResponseSchema>  // { imageUrls: string[] }
 export type VisualizerErrorResponse = z.infer<typeof VisualizerErrorResponseSchema>

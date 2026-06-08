@@ -21,12 +21,11 @@ export async function generateWithFluxKontext(params: {
       `Place it naturally with realistic perspective, lighting, and shadows. ` +
       `Preserve the room exactly — only add the furniture piece.`
 
-    // Nota: verificar nombre exacto de parámetros en fal.ai/models/fal-ai/flux-kontext/max
-    const result = await fal.subscribe('fal-ai/flux-kontext/max', {
+    // Nota: verificar nombre exacto de parámetros en fal.ai/models/fal-ai/flux-pro/kontext
+    const result = await fal.subscribe('fal-ai/flux-pro/kontext', {
       input: {
         prompt,
         image_url: params.roomImageBase64,
-        reference_image_url: params.productImageUrl,
       },
     })
 

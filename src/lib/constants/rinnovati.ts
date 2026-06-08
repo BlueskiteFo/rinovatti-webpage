@@ -2,7 +2,7 @@
 // Reemplazar con datos reales del cliente antes de lanzar
 
 export const RINNOVATI_CONFIG = {
-  whatsappNumber: '51920478785',
+  whatsappNumber: '999999999',
   instagramUrl: 'https://instagram.com/rinnovati.pe',
   location: 'Lima, Perú',
   tagline: 'Envíos a todo el país',
@@ -25,6 +25,21 @@ export function buildWhatsAppMessage(vars: {
   return WHATSAPP_MESSAGE_TEMPLATE.replace('{productName}', vars.productName)
     .replace('{colorName}', vars.colorName)
     .replace('{roomWidth}', vars.roomWidth || '—')
+}
+
+/** Genera la URL directa de wa.me con el mensaje pre-armado */
+export function buildWhatsAppUrl(vars: {
+  productName: string
+  colorName: string
+  roomWidth?: string
+}): string {
+  const message = buildWhatsAppMessage({
+    productName: vars.productName,
+    colorName: vars.colorName,
+    roomWidth: vars.roomWidth ?? '',
+  })
+  const encoded = encodeURIComponent(message)
+  return `https://wa.me/${RINNOVATI_CONFIG.whatsappNumber}?text=${encoded}`
 }
 
 // ─── Instrucciones de foto para el visualizador ───────────────────────────────
